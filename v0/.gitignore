@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+*.egg-info/
+
+# media (kept locally, not versioned)
+*.mp4
+*.mov
+*.wav
+*.mp3
+
+# pipeline output (regenerable from a source video)
+src/motion_capture/output/
+
+.DS_Store
