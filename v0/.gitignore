@@ -8,7 +8,7 @@ dist/
 *.mp4
 *.mov
 *.wav
-*.mp3
+
 
 # pipeline output (regenerable from a source video)
 src/motion_capture/output/
