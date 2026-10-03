@@ -1,0 +1,73 @@
+# Dansonic v1 - rehearsal configuration
+#
+# The drum loop plays continuously in the background. Each of the 7 sounds is
+# triggered by one or more gestures. A sound fires once when its pose starts;
+# the dancer has to leave the pose and re-enter it to fire again.
+#
+# Built-in gestures (sides are the dancer's own left/right):
+#   right_hand_chest, left_hand_chest       hand on same-side shoulder/chest
+#   right_forearm_front, left_forearm_front forearm across the body, other arm down
+#   hands_on_hips                           both hands on hips, elbows out
+#   right_foot_up, left_foot_up             one foot lifted
+#   right_hand_up, left_hand_up, both_hands_up
+#   right_arm_out, left_arm_out, t_pose
+#   arms_crossed, hands_together, squat, lean_left, lean_right
+#   right_swipe_down, left_swipe_down, right_swipe_up, left_swipe_up  (fast hand motion)
+# Recorded poses: `run.py --record NAME` saves poses/NAME.json; NAME is then a gesture.
+
+loop:
+  file: sounds/drums-loop.mp3
+  bpm: 132.905          # measured from the file, steady for all 10 minutes
+  beat_offset: 0.055    # seconds of the first beat
+  gain: 0.8
+
+sounds_dir: sounds
+
+audio:
+  device: null          # sounddevice output index, null = system default
+  blocksize: 256
+  master_gain: 0.9
+  quantize: 4           # grid points per beat a trigger snaps to (4 = 16th notes, 0 = instant)
+  choke: true           # a new sound cuts the one still playing
+
+camera:
+  source: 0             # camera index or a video file path
+  width: 1280
+  height: 720
+  mirror: true
+  process_width: 960    # more pixels per dancer helps when they stand far from the camera
+
+pose:
+  model: assets/models/pose_landmarker_full.task   # more accurate; lite is faster (21 vs 31 ms for two people)
+  mode: single          # single = follow one dancer, ignore everyone else | multi = all dancers trigger
+  select: center        # single: who to lock onto first: center | largest | left | right (on screen)
+  detect_people: 3      # single: how many bodies to detect so the right one can be picked
+  max_dancers: 5        # multi only
+  assignment: zones     # multi only: zones (left-to-right on screen) | track
+  min_detection: 0.4    # lower = fewer dropouts in hard light or behind glass
+  min_tracking: 0.4
+
+gestures:
+  hysteresis: 0.15
+  hold_frames: 2
+  release_frames: 3
+  swipe_speed: 4.0
+  swipe_cooldown: 0.3
+
+# One entry per sound. Optional per entry: dancer (0, 1, 2 ... or any), quantize, gain.
+# Number keys 1-7 fire these sounds in this order for testing.
+mappings:
+  - sound: ab
+    gestures: [right_hand_chest, left_hand_chest]
+  - sound: been
+    gestures: [right_foot_up, left_foot_up]
+  - sound: thin
+    gestures: [hands_on_hips]
+  - sound: wha-been
+    gestures: [right_forearm_front, left_forearm_front]
+  - sound: two-been-thin
+    gestures: [t_pose]
+  - sound: ab-wha-two-been-thin
+    gestures: [both_hands_up]
+  - sound: ab-ow-ab-ow-thin
+    gestures: [arms_crossed]
