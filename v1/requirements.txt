@@ -1,0 +1,8 @@
+# Python 3.11 or 3.12 (mediapipe 0.10.x has no 3.13 wheels; 1.0.x crashes on macOS)
+numpy<2
+mediapipe==0.10.21
+opencv-python==4.10.0.84
+opencv-contrib-python==4.10.0.84
+sounddevice>=0.5
+soundfile>=0.12
+pyyaml>=6
