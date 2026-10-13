@@ -1,0 +1,72 @@
+# Dansonic v2 - rehearsal configuration
+#
+# The only sound is ab-ab (sounds/ab-ab.wav, the start of dansonic_test.mp3). Whichever of its motions (`sounds`
+# below) the dancer starts, it plays once (`audio.quantize`: 0 = at once, 4 = on the next 16th note of the loop).
+# A pose fires when it starts; the dancer has to leave it and enter it again to fire again.
+# `python run.py --motions` lists every motion with a one-line description and what plays it.
+#
+# A one-sided motion name stands for either side: `forearm_up` is `left_forearm_up` and `right_forearm_up`.
+# Sides are the dancer's own left and right. Moves of the user's sketches are in moves/.
+
+loop:
+  file: sounds/drums-loop-125.flac
+  bpm: 125              # drums-loop.mp3 (132.905 bpm) slowed to 0.9405x; drums-loop-slow.flac is the 120.5 bpm version
+  beat_offset: 0.0585   # seconds of the first beat (0.055 / 0.9405)
+  gain: 0.8
+
+sounds_dir: sounds
+
+audio:
+  device: null          # sounddevice output index, null = system default
+  blocksize: 256
+  master_gain: 0.9
+  quantize: 4           # grid points per beat a sound snaps to (4 = 16th notes, 0 = instant)
+  choke: false          # true = a new sound cuts the one still playing (off: ab must not cut the long ab-ab clip)
+
+camera:
+  source: 0             # camera index or a video file path
+  width: 1280
+  height: 720
+  mirror: true
+  process_width: 960    # more pixels per dancer helps when they stand far from the camera
+
+pose:
+  model: assets/models/pose_landmarker_full.task   # more accurate; lite is faster (21 vs 31 ms for two people)
+  mode: single          # single = follow one dancer, ignore everyone else | multi = all dancers trigger
+  select: center        # single: who to lock onto first: center | largest | left | right (on screen)
+  detect_people: 3      # single: how many bodies to detect so the right one can be picked
+  max_dancers: 5        # multi only
+  assignment: zones     # multi only: zones (left-to-right on screen) | track
+  min_detection: 0.4    # lower = fewer dropouts in hard light or behind glass
+  min_tracking: 0.4
+
+detector:
+  hysteresis: 0.15      # a held pose ends only when it is this far (torso units) from its limit
+  hold_frames: 2        # frames a pose must be held before it fires (1 = faster, noisier)
+  release_frames: 3
+  swipe_speed: 4.0      # torso lengths per second for a swipe
+  swipe_cooldown: 0.3
+  flail_hits: 9         # arms_flail: swipes needed ...
+  flail_window: 1.5     # ... within this many seconds
+  flail_cooldown: 2.0
+  clap_speed: 3.0       # torso lengths per second the hands close at for a clap
+
+cooldown: 0.2           # seconds before the same sound can play again (so two of its motions at once play it once)
+
+# ab-ab, ab, thin and wha-been. ab-ab: the first 20 s of dansonic_test.mp3 (sounds/ab-ab.wav) plays when the ab-ab motion (a little jump and both arms out to the sides) starts.
+sounds:
+  ab-ab:
+    motions: [jump_arms_out]   # a jump with both arms out to the sides
+    cooldown: 20.5
+    protect: 20           # while the clip plays no other sound (ab) is played; its own move always starts it
+    restart_loop: true    # starts at once; the loop jumps to its first beat so the clip and the loop are in time
+  ab:                               # one ab: a hand up, left or right (as in v1)
+    motions: [hand_up]
+  thin:                             # one thin: the forearm across the chest, either arm (the dancers' move at 1:29-1:31),
+    motions: [arm_across, chest_cross, lean_across]   # or an arm (or both, an X) held across the chest, no sweep needed,
+                                                      # or leaning to the left or right with an arm (or both) across the chest
+    cooldown: 0.45                  # the arms alternate: one thin per sweep, not one per arm
+    quantize: 0                     # plays at once, not on the next 16th note (that held it back by up to 0.12 s)
+  wha-been:                         # one wha-been: a leg lifted at least 75 degrees from hanging (knee near hip height), left or right
+    motions: [leg_up]
+    cooldown: 0.3                   # the legs alternate: each lift plays, a wobbling knee does not play twice

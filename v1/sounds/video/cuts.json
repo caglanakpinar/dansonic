@@ -1,0 +1,63 @@
+{
+ "source": "Dansonic_blablabla_vocals.mp3",
+ "note": "Times are seconds in the full-speed vocal track. The dance video plays this track from 26.16 s on at 0.907x speed (video_time = (track_time - 26.163) / 0.907).",
+ "tempo_bpm": 132.9,
+ "cuts": [
+  {
+   "name": "ab",
+   "start": 28.143,
+   "end": 28.598,
+   "video_time": 2.18,
+   "where": "bar 1 beat 1"
+  },
+  {
+   "name": "been",
+   "start": 34.032,
+   "end": 34.471,
+   "video_time": 8.68,
+   "where": "bar 4 beat 2"
+  },
+  {
+   "name": "thin",
+   "start": 30.847,
+   "end": 31.303,
+   "video_time": 5.16,
+   "where": "bar 2 beat 3"
+  },
+  {
+   "name": "wha-been",
+   "start": 31.301,
+   "end": 31.788,
+   "video_time": 5.66,
+   "where": "bar 2 beat 4"
+  },
+  {
+   "name": "two-been-thin",
+   "start": 37.615,
+   "end": 38.549,
+   "video_time": 12.63,
+   "where": "bar 6 beat 2 -> end of beat 3"
+  },
+  {
+   "name": "ab-wha-two-been-thin",
+   "start": 37.178,
+   "end": 38.549,
+   "video_time": 12.14,
+   "where": "bar 6 beats 1-3"
+  },
+  {
+   "name": "ab-ow-ab-ow-thin",
+   "start": 38.982,
+   "end": 40.337,
+   "video_time": 14.13,
+   "where": "bar 7 beats 1-3"
+  },
+  {
+   "name": "ab-ab",
+   "start": 28.143,
+   "end": 29.05,
+   "video_time": 2.18,
+   "where": "bar 1 beats 1-2 (a double ab)"
+  }
+ ]
+}

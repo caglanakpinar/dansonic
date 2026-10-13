@@ -1,0 +1,30 @@
+{
+ "name": "right_hand_head",
+ "joints": [
+  13,
+  14,
+  15,
+  16
+ ],
+ "threshold": 0.16,
+ "note": "right hand at the head, left arm out (video 5.2-5.9 s, bar 2 beats 3-4)",
+ "source": "dance video, lead dancer, median pose over 5.25-5.60 s",
+ "vector": [
+  [
+   -0.7249036431312561,
+   0.4555473029613495
+  ],
+  [
+   0.8282842636108398,
+   -0.35941454768180847
+  ],
+  [
+   -1.0493143796920776,
+   0.8211377263069153
+  ],
+  [
+   0.4520874321460724,
+   -0.24426358938217163
+  ]
+ ]
+}

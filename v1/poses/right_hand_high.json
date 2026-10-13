@@ -1,0 +1,30 @@
+{
+ "name": "right_hand_high",
+ "joints": [
+  13,
+  14,
+  15,
+  16
+ ],
+ "threshold": 0.2,
+ "note": "right hand high with the elbow bent, left arm down (video 20.3-21.3 s, bar 10)",
+ "source": "dance video, lead dancer, median pose over 20.50-21.00 s",
+ "vector": [
+  [
+   -0.5625333189964294,
+   0.613251805305481
+  ],
+  [
+   0.5169554948806763,
+   -0.5544564127922058
+  ],
+  [
+   -0.735968291759491,
+   1.075341820716858
+  ],
+  [
+   0.26888376474380493,
+   -0.8021507263183594
+  ]
+ ]
+}

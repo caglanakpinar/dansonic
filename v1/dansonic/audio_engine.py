@@ -3,6 +3,7 @@
 The backing loop is held in memory as int16 stereo. The main thread only
 mutates small pieces of state under a lock; the audio callback renders blocks.
 """
+import math
 import threading
 
 import numpy as np
@@ -38,6 +39,7 @@ class AudioEngine:
         self.peak = 0.0
         self.last_trigger = {}          # sample name -> absolute frame counter of its start
         self.clock = 0                  # monotonically increasing frame counter (never wraps)
+        self.trigger_log = None         # set to a list to record (sample name, start frame in the loop)
 
         self.stream = sd.OutputStream(samplerate=sr, channels=2, dtype="float32",
                                       blocksize=blocksize, latency="low",
@@ -68,14 +70,65 @@ class AudioEngine:
         return self.pos / self.sr
 
     # ---- triggers ------------------------------------------------------------
-    def trigger(self, name: str, quantize: int = 0, gain: float = 1.0):
-        """Schedules a one-shot at the next grid point (quantize per beat, 0 = now)."""
+    def beat_target(self, lookahead: float = 0.25, quantize: int = 4) -> tuple:
+        """The beat a hit made right now belongs to: (beat index, beat of the bar 0-3, start frame).
+
+        A hit in the last `lookahead` of a beat counts for the next beat and waits for it;
+        any other hit counts for the current beat and starts on the next grid point."""
+        with self.lock:
+            pos, grid = self.pos, self.grid
+            phase = (pos - grid.offset_frames) / grid.beat_frames
+            beat = math.floor(phase + lookahead)
+            if self.quantize_enabled and beat > math.floor(phase):
+                target = int(round(grid.offset_frames + beat * grid.beat_frames))
+            else:
+                target = grid.next_grid_frame(pos, quantize if self.quantize_enabled else 0)
+            return beat, (beat - grid.downbeat_index) % 4, target
+
+    def beat_landing(self, beat: int, quantize: int = 4) -> int:
+        """Start frame for a sound of `beat` decided a moment after the hit: on the beat if it is
+        still ahead, otherwise on the next grid point."""
+        with self.lock:
+            pos, grid = self.pos, self.grid
+            beat_frame = int(round(grid.offset_frames + beat * grid.beat_frames))
+            if self.quantize_enabled and beat_frame >= pos:
+                return beat_frame
+            return grid.next_grid_frame(pos, quantize if self.quantize_enabled else 0)
+
+    def current_beat(self) -> int:
+        """Index of the beat in progress, counted from the loop's first beat."""
+        with self.lock:
+            return self.grid.beat_index(self.pos)
+
+    @property
+    def loop_beats(self) -> int:
+        """How many beats the loop has: beat numbers start over after this many."""
+        return max(1, round(self.length / self.grid.beat_frames))
+
+    def seconds_to_beat(self, beat: int) -> float:
+        """Seconds until `beat` starts, negative once it has passed."""
+        with self.lock:
+            return (self.grid.offset_frames + beat * self.grid.beat_frames - self.pos) / self.sr
+
+    def trigger(self, name: str, quantize: int = 0, gain: float = 1.0, at=None, skip_beats: float = 0.0):
+        """Schedules a one-shot at the next grid point (quantize per beat, 0 = now), or at frame `at`.
+        With `skip_beats` it starts that many beats into the sound, for the second half of a double."""
         data = self.samples.get(name)
         if data is None:
             return
+        if skip_beats:
+            skip = int(round(skip_beats * self.grid.beat_frames))
+            if skip >= len(data):
+                return
+            data = data[skip:].copy()
+            ramp = min(len(data), int(0.003 * self.sr))      # a start part-way in must not click
+            data[:ramp] *= np.linspace(0.0, 1.0, ramp, dtype=np.float32)[:, None]
         with self.lock:
-            q = quantize if self.quantize_enabled else 0
-            target = self.grid.next_grid_frame(self.pos, q)
+            if at is not None:
+                target = at
+            else:
+                q = quantize if self.quantize_enabled else 0
+                target = self.grid.next_grid_frame(self.pos, q)
             wait = max(0, target - self.pos)
             if self.choke:
                 for v in self.voices:
@@ -84,6 +137,8 @@ class AudioEngine:
             self.voices.append(dict(data=data, wait=wait, cursor=0, fade=-1, stop_in=-1,
                                     gain=gain * self.sample_gains.get(name, 1.0)))
             self.last_trigger[name] = self.clock + wait
+            if self.trigger_log is not None:
+                self.trigger_log.append((name, self.pos + wait))
 
     # ---- rendering -------------------------------------------------------------
     def _render_voice(self, v, out, frames):

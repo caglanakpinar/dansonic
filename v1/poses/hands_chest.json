@@ -1,0 +1,30 @@
+{
+ "name": "hands_chest",
+ "joints": [
+  13,
+  14,
+  15,
+  16
+ ],
+ "threshold": 0.15,
+ "note": "both hands on the chest, elbows in (video 2.3 s, bar 1 beat 1)",
+ "source": "dance video, lead dancer, median pose over 2.40-2.52 s",
+ "vector": [
+  [
+   -0.40122056007385254,
+   0.5925543904304504
+  ],
+  [
+   0.423228919506073,
+   0.5470816493034363
+  ],
+  [
+   -0.19250057637691498,
+   0.3328796923160553
+  ],
+  [
+   0.24989226460456848,
+   0.4826183617115021
+  ]
+ ]
+}

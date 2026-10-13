@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dansonic sounds and moves</title>
+<style>
+  :root { --bg:#fafafa; --card:#fff; --ink:#1c1c1e; --mute:#6b6b70; --line:#e2e2e6; --acc:#0a6cff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141416; --card:#1d1d20; --ink:#ececf0; --mute:#9a9aa2; --line:#2e2e33; --acc:#4d9bff; }
+  }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system, system-ui, sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:17px; margin:0 0 4px; }
+  p, li { color:var(--mute); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:14px 0; }
+  .meta { color:var(--mute); font-size:13px; margin:2px 0 8px; }
+  audio { width:100%; margin:6px 0; }
+  img { max-width:100%; height:auto; display:block; border-radius:6px; background:#fff; }
+  .move { margin-top:10px; }
+  .move b { font-weight:600; }
+  .move span { color:var(--mute); font-size:13px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  th, td { text-align:left; padding:3px 8px; border-bottom:1px solid var(--line); }
+  td.ok { color:#1a7f37; }
+  td.bad { color:#c62828; }
+  code { font-size:13px; }
+  .bar { display:flex; gap:8px; margin:8px 0; }
+  .bar div { flex:1; text-align:center; border:1px solid var(--line); border-radius:8px; padding:6px 4px; color:var(--ink); }
+  .bar small { display:block; color:var(--mute); font-size:12px; }
+  .key i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sounds and moves from the dance video</h1>
+  <p>Each card is one sound as the app plays it (<code>sounds/video/</code>): where it was cut and how it is triggered.
+     Play it and check that it starts on the syllable and does not run into the next one.</p>
+  <p class="key"><i style="background:#00e5ff"></i>cut start &nbsp; <i style="background:#76ff03"></i>cut end &nbsp;
+     (spectrogram of the vocal track around the cut, 0.2 s margin each side)</p>
+
+  <section class="card">
+    <h2>How the sounds play (beat mode)</h2>
+    <p>The song's vocal goes the same way in every bar. A hit (a swipe of an arm, or the start of a pose) plays the sound of the
+       beat of the bar it lands on, at most one per beat. Holding a pose keeps the line going on every beat, and so does any movement in the picture, even a dancer the pose tracker does not see
+       or a move that is no known gesture; a still picture is silent. The three phrases have their own moves and are not cut while they play.</p>
+    <div class="bar"><div>beat 1<small>ab (one arm)</small><small>ab-ab (both arms)</small></div><div>beat 2<small>been</small></div><div>beat 3<small>thin</small></div><div>beat 4<small>wha-been</small></div></div>
+    <p>Beat 1 is sung two ways. In most bars it is one <i>ab</i>; in bars 1, 3 and 8 of the video it is <i>ab ab</i> over beats 1 and 2.
+       A hit on beat 1 plays <i>ab</i> at once. If both arms hit within 0.25 s of it (hands to the chest, both arms up, a left and a right swipe together),
+       the second <i>ab</i> follows on beat 2 in place of <i>been</i>: together they are the <i>ab-ab</i> sound (<code>group</code> in <code>config.yaml</code>).</p>
+    <p>The dance opens with <i>ab ab</i>: nothing plays until that move (both hands on the chest, <code>opening</code> in <code>config.yaml</code>) is seen, and it then becomes beat 1 of the bar. The opening is forgiving: one clear frame of the move is enough, freer versions (hands lower or crossed a little, both forearms up) count when held for 0.3 s, and the <b>K</b> key teaches the app your own <i>ab ab</i>. Restarting the loop or the video closes that gate again, and so does the end of the senkron (10 bars, <code>senkron</code> in <code>config.yaml</code>); the <b>O</b> key opens it by hand.
+       Before the dance (the senkron) starts only the individual motions sound (a hand up plays <i>ab</i>, <code>individual</code> in <code>config.yaml</code>); they do not start it, and once it has started they are silent.</p>
+    <p>The loop's first beat is beat 1. Press <b>R</b> when the dance starts, or <b>B</b> on the dancer's 1, to line the bar up.
+       The old way, one move per sound, is in <code>config.gestures.yaml</code>.</p>
+  </section>
+
+  <section class="card">
+    <h2>What the app plays on dansonic.mp4</h2>
+    <div class="meta">Drum loop plus the sounds the app triggers when the lead dancer's pose data runs through it, with the video at 1.1025x and its bars lined up with the loop's.
+      24.6 s. Play it next to the video's own sound.</div>
+    <audio controls preload="none" src="app_on_video.wav"></audio>
+    <p><code>run.py --source dansonic.mp4</code> plays these 38 sounds. 33 are the same sound as the original at that beat, 5 differ (red). Video seconds, bar.beat of the original's grid; the second <i>ab</i> of a double is the tail of <i>ab-ab</i>.</p>
+    <table>
+      <tr><th>Video s</th><th>Bar.beat</th><th>Lands</th><th>App plays</th><th>Because</th><th>Original plays</th></tr>
+      <tr><td>2.31</td><td>1.1</td><td>a 16th after</td><td>ab</td><td>opening: hands_chest</td><td class="ok">ab (1st of ab ab)</td></tr>
+      <tr><td>2.69</td><td>1.2</td><td>on the beat</td><td>ab-ab</td><td>opening: hands_chest, both arms</td><td class="ok">ab (2nd of ab ab)</td></tr>
+      <tr><td>3.19</td><td>1.3</td><td>on the beat</td><td>thin</td><td>movement in view</td><td class="ok">thin</td></tr>
+      <tr><td>3.68</td><td>1.4</td><td>on the beat</td><td>wha-been</td><td>squat_wide held</td><td class="ok">wha-been</td></tr>
+      <tr><td>4.18</td><td>2.1</td><td>on the beat</td><td>ab</td><td>squat_wide held</td><td class="ok">ab</td></tr>
+      <tr><td>4.68</td><td>2.2</td><td>on the beat</td><td>been</td><td>right_arm_diag held</td><td class="ok">been</td></tr>
+      <tr><td>5.18</td><td>2.3</td><td>on the beat</td><td>thin</td><td>right_arm_diag held</td><td class="ok">thin</td></tr>
+      <tr><td>5.67</td><td>2.4</td><td>on the beat</td><td>wha-been</td><td>right_hand_head held</td><td class="ok">wha-been</td></tr>
+      <tr><td>6.17</td><td>3.1</td><td>on the beat</td><td>ab</td><td>right_hand_up</td><td class="ok">ab (1st of ab ab)</td></tr>
+      <tr><td>6.67</td><td>3.2</td><td>on the beat</td><td>been</td><td>right_hand_up held</td><td class="bad">ab (2nd of ab ab)</td></tr>
+      <tr><td>7.17</td><td>3.3</td><td>on the beat</td><td>thin</td><td>right_hand_up held</td><td class="ok">thin</td></tr>
+      <tr><td>7.66</td><td>3.4</td><td>on the beat</td><td>wha-been</td><td>movement in view</td><td class="ok">wha-been</td></tr>
+      <tr><td>8.16</td><td>4.1</td><td>on the beat</td><td>ab</td><td>movement in view</td><td class="ok">ab</td></tr>
+      <tr><td>8.66</td><td>4.2</td><td>on the beat</td><td>been</td><td>movement in view</td><td class="ok">been</td></tr>
+      <tr><td>9.16</td><td>4.3</td><td>on the beat</td><td>thin</td><td>movement in view</td><td class="ok">thin</td></tr>
+      <tr><td>9.66</td><td>4.4</td><td>on the beat</td><td>wha-been</td><td>movement in view</td><td class="ok">wha-been</td></tr>
+      <tr><td>10.15</td><td>5.1</td><td>on the beat</td><td>ab</td><td>movement in view</td><td class="bad">been</td></tr>
+      <tr><td>10.65</td><td>5.2</td><td>on the beat</td><td>been</td><td>movement in view</td><td class="ok">been</td></tr>
+      <tr><td>11.15</td><td>5.3</td><td>on the beat</td><td>thin</td><td>movement in view</td><td class="ok">thin</td></tr>
+      <tr><td>11.65</td><td>5.4</td><td>on the beat</td><td>wha-been</td><td>movement in view</td><td class="ok">wha-been</td></tr>
+      <tr><td>12.14</td><td>6.1</td><td>on the beat</td><td>ab</td><td>movement in view</td><td class="ok">ab-wha-two-been-thin</td></tr>
+      <tr><td>12.64</td><td>6.2</td><td>on the beat</td><td>been</td><td>movement in view</td><td class="bad">two-been-thin</td></tr>
+      <tr><td>13.14</td><td>6.3</td><td>on the beat</td><td>thin</td><td>movement in view</td><td class="bad">two-been-thin</td></tr>
+      <tr><td>13.64</td><td>6.4</td><td>on the beat</td><td>wha-been</td><td>movement in view</td><td class="ok">wha-been</td></tr>
+      <tr><td>14.14</td><td>7.1</td><td>on the beat</td><td>ab</td><td>movement in view</td><td class="ok">ab-ow-ab-ow-thin</td></tr>
+      <tr><td>14.26</td><td>7.1</td><td>a 16th after</td><td>ab-ow-ab-ow-thin</td><td>both_hands_up</td><td class="ok">ab-ow-ab-ow-thin</td></tr>
+      <tr><td>15.63</td><td>7.4</td><td>on the beat</td><td>wha-been</td><td>right_hand_up held</td><td class="ok">wha-been</td></tr>
+      <tr><td>16.13</td><td>8.1</td><td>on the beat</td><td>ab</td><td>left_hand_up held</td><td class="ok">ab (1st of ab ab)</td></tr>
+      <tr><td>16.62</td><td>8.2</td><td>on the beat</td><td>ab-ab</td><td>left_hand_up held, both arms</td><td class="ok">ab (2nd of ab ab)</td></tr>
+      <tr><td>17.12</td><td>8.3</td><td>on the beat</td><td>thin</td><td>left_hand_up held</td><td class="ok">thin</td></tr>
+      <tr><td>17.62</td><td>8.4</td><td>on the beat</td><td>wha-been</td><td>left_hand_up held</td><td class="ok">wha-been</td></tr>
+      <tr><td>18.12</td><td>9.1</td><td>on the beat</td><td>ab</td><td>left_hand_up held</td><td class="bad">been</td></tr>
+      <tr><td>18.61</td><td>9.2</td><td>on the beat</td><td>been</td><td>left_hand_up held</td><td class="ok">been</td></tr>
+      <tr><td>19.11</td><td>9.3</td><td>on the beat</td><td>thin</td><td>left_hand_up held</td><td class="ok">thin</td></tr>
+      <tr><td>19.61</td><td>9.4</td><td>on the beat</td><td>wha-been</td><td>left_swipe_down</td><td class="ok">wha-been</td></tr>
+      <tr><td>20.11</td><td>10.1</td><td>on the beat</td><td>ab</td><td>left_swipe_down</td><td class="ok">ab-wha-two-been-thin</td></tr>
+      <tr><td>20.23</td><td>10.1</td><td>a 16th after</td><td>ab-wha-two-been-thin</td><td>right_arm_side</td><td class="ok">ab-wha-two-been-thin</td></tr>
+      <tr><td>21.73</td><td>10.4</td><td>a 16th after</td><td>wha-been</td><td>right_arm_out held</td><td class="ok">wha-been</td></tr>
+    </table>
+    <p>The red rows:
+       <b>6.67 s (bar 3)</b> the original sings <i>ab ab</i> while the lead only raises the right arm, so the app plays <i>ab</i> and then <i>been</i>. It is the one double that does not follow the both-arms rule.
+       <b>10.15 and 18.12 s (bars 5 and 9)</b> the original starts these bars with <i>been</i> (<i>been been</i>) and the app plays <i>ab</i>, because beat mode follows the beat of the bar, not the syllable.
+       <b>12.64 and 13.14 s (bar 6)</b> the original sings the fill phrase for the second dancer; here the plain beat sounds play.</p>
+    <p>The senkron lasts 10 bars from the opening and stops with its last sound (22.1 s; the singing in the video ends at 21.8 s and the vocal track is silent from 22 s). After that nothing of the dance plays, whatever the dancers do, until the opening move is made again; the video's last five seconds are silent for the dance.</p>
+    <p>Nothing plays until the opening <i>ab ab</i> is seen (the hands to the chest, 2.4 s): no hit, held pose, movement in view or phrase. That moment is beat 1 and plays <i>ab</i> and then the second <i>ab</i> on beat 2; the first <i>ab</i> comes about 0.1 s after the video's own, because the move has to be seen first.
+       The second dancer is never detected as a pose, but her movement (9.7-13.6 s) keeps the line going on every beat.
+       The half-beat <i>ow</i> syllables only come with the phrase. Bar 8 plays <i>ab</i> and then <i>ab-ab</i> although <code>both_hands_up</code> goes off there too:
+       the phrase was already played one bar earlier, and its <code>cooldown</code> (2.5 s) keeps it from starting again.</p>
+  </section>
+
+  <section class="card">
+    <h2>1. ab &mdash; beat 1, one arm</h2>
+    <div class="meta">0.44 s, one beat. Vocal track 28.143 s = video 2.18 s (bar 1, beat 1). Plays when beat 1 is hit with one arm.</div>
+    <audio controls preload="none" src="../../sounds/video/ab.wav"></audio>
+    <img src="img/cut_ab.png" alt="spectrogram of ab">
+    <div class="move"><b>One arm on beat 1</b> <span>bars 2 and 4, where the video sings a single ab: in bar 2 the right arm swings up (4.2 s) while the left hangs; in bar 4 (8.2 s) the arms stay in front of the body.</span></div>
+    <img src="img/move_right_arm_diag.png" alt="right_arm_diag, 4.2 s">
+  </section>
+
+  <section class="card">
+    <h2>2. ab-ab &mdash; beat 1, both arms</h2>
+    <div class="meta">0.91 s, two beats (<i>ab ab</i>, beats 1 and 2). Vocal track 28.143 s = video 2.18 s (bar 1). The video sings it in bars 1, 3 and 8 and a single ab in bars 2 and 4.</div>
+    <audio controls preload="none" src="../../sounds/video/ab-ab.wav"></audio>
+    <img src="img/cut_ab-ab.png" alt="spectrogram of ab-ab">
+    <div class="move"><b>Both arms on beat 1</b> <span>bar 1: both hands to the chest and out again (2.2-2.6 s). Bar 8: both arms go up together and stay up (16.1-16.6 s). The <i>ab</i> plays at once; if both arms hit within 0.25 s of it (both hands to the chest, both arms up, or a left and a right swipe together), the rest of this sound, its second <i>ab</i>, plays on beat 2.</span></div>
+    <img src="img/move_hands_chest.png" alt="hands to the chest, bar 1"><img src="img/move_ab_bar8.png" alt="both arms up, bar 8">
+    <div class="move"><b>The exception</b> <span>bar 3 (6.1-6.7 s) is <i>ab ab</i> too, but only the right arm is up, so the app plays a single <i>ab</i> and then <i>been</i> there. The rule fits 4 of the 5 bars that start on ab; the video is too short to tell what else separates them.</span></div>
+    <img src="img/move_ab_bar3.png" alt="right arm only, bar 3">
+  </section>
+
+  <section class="card">
+    <h2>3. been &mdash; beat 2</h2>
+    <div class="meta">0.44 s, one beat. Vocal track 34.032 s = video 8.68 s (bar 4, beat 2).</div>
+    <audio controls preload="none" src="../../sounds/video/been.wav"></audio>
+    <img src="img/cut_been.png" alt="spectrogram of been">
+    <div class="move"><b>arm_sweep</b> <span>right arm swept out to the side at chest height, left forearm across the chest. Video 8.7 s, bar 4 beat 2.</span></div>
+    <img src="img/move_arm_sweep.png" alt="arm_sweep">
+  </section>
+
+  <section class="card">
+    <h2>4. thin &mdash; beat 3</h2>
+    <div class="meta">0.46 s, one beat. Vocal track 30.847 s = video 5.16 s (bar 2, beat 3).</div>
+    <audio controls preload="none" src="../../sounds/video/thin.wav"></audio>
+    <img src="img/cut_thin.png" alt="spectrogram of thin">
+    <div class="move"><b>Moves on beat 3 in the video</b> <span>the wide squat (3.2 s) and the right hand to the head (5.2 s).</span></div>
+    <img src="img/move_squat_wide.png" alt="squat_wide"><img src="img/move_right_hand_head.png" alt="right_hand_head">
+  </section>
+
+  <section class="card">
+    <h2>5. wha-been &mdash; beat 4</h2>
+    <div class="meta">0.49 s, one beat plus the half-beat "been". Vocal track 31.301 s = video 5.67 s (bar 2, beat 4).</div>
+    <audio controls preload="none" src="../../sounds/video/wha-been.wav"></audio>
+    <img src="img/cut_wha-been.png" alt="spectrogram of wha-been">
+    <div class="move"><b>Moves on beat 4 in the video</b> <span>the closing move: the left arm swiped down (3.7 s and 19.4-19.9 s), and the T at 19.6 s, which lasts about one frame.</span></div>
+    <img src="img/move_left_swipe_down.png" alt="left arm swipes down, 3.7 s and 19.4-19.9 s"><img src="img/move_t_moment.png" alt="the T at 19.6 s">
+  </section>
+
+  <section class="card">
+    <h2>6. two-been-thin &mdash; phrase</h2>
+    <div class="meta">0.93 s, two beats. Vocal track 37.615 s = video 12.63 s (bar 6, beat 2). Same phrase again in bar 10.</div>
+    <audio controls preload="none" src="../../sounds/video/two-been-thin.wav"></audio>
+    <img src="img/cut_two-been-thin.png" alt="spectrogram of two-been-thin">
+    <div class="move"><b>right_hand_high</b> <span>right hand high, elbow bent, left arm down. Video 20.4 s, bar 10. It is the tail of the next phrase, so it does not play on top of it (<code>protect</code>).</span></div>
+    <img src="img/move_right_hand_high.png" alt="right_hand_high">
+  </section>
+
+  <section class="card">
+    <h2>7. ab-wha-two-been-thin &mdash; phrase</h2>
+    <div class="meta">1.37 s, three beats, five syllables on the half beats. Vocal track 37.178 s = video 12.15 s (bar 6, beats 1-3). Same phrase again in bar 10.</div>
+    <audio controls preload="none" src="../../sounds/video/ab-wha-two-been-thin.wav"></audio>
+    <img src="img/cut_ab-wha-two-been-thin.png" alt="spectrogram of ab-wha-two-been-thin">
+    <div class="move"><b>right_arm_side</b> <span>right arm out to the side, left arm down. Video 20.2 s, bar 10 beat 1, exactly when this phrase starts. The T at 19.6 s has the left arm out too, so it does not trigger this.</span></div>
+    <img src="img/move_right_arm_side.png" alt="right_arm_side">
+  </section>
+
+  <section class="card">
+    <h2>8. ab-ow-ab-ow-thin &mdash; phrase</h2>
+    <div class="meta">1.36 s, three beats, five syllables on the half beats. Vocal track 38.982 s = video 14.14 s (bar 7, beats 1-3).</div>
+    <audio controls preload="none" src="../../sounds/video/ab-ow-ab-ow-thin.wav"></audio>
+    <img src="img/cut_ab-ow-ab-ow-thin.png" alt="spectrogram of ab-ow-ab-ow-thin">
+    <div class="move"><b>arms_flail</b> <span>arms swiping up and down in turn, one swipe per syllable. Video 14.1-16.2 s, bar 7. Fires after 9 swipes in 1.5 s.</span></div>
+    <img src="img/move_arms_flail.png" alt="arms_flail">
+    <div class="move"><b>both_hands_up</b> <span>fires at 14.2 s at the start of this phrase, and again at 16.2 s when the long overhead hold starts, where the original sings <i>ab ab</i>. The phrase has a <code>cooldown</code> of 2.5 s so it does not start again there and the double plays instead. While the arms stay up the line keeps going on every beat.</span></div>
+    <img src="img/move_both_hands_up.png" alt="both_hands_up">
+  </section>
+</main>
+</body>
+</html>

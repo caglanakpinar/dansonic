@@ -1,0 +1,30 @@
+{
+ "name": "arm_sweep",
+ "joints": [
+  13,
+  14,
+  15,
+  16
+ ],
+ "threshold": 0.17,
+ "note": "right arm swept out to the side at chest height, left forearm across the chest (video 8.7 s, bar 4 beat 2)",
+ "source": "dance video, lead dancer, median pose over 8.45-8.78 s",
+ "vector": [
+  [
+   -0.3551272600889206,
+   0.4114187955856323
+  ],
+  [
+   0.5870564579963684,
+   0.6704294979572296
+  ],
+  [
+   -0.4405740946531296,
+   0.7334238588809967
+  ],
+  [
+   0.9731996953487396,
+   0.8675879836082458
+  ]
+ ]
+}

@@ -79,7 +79,9 @@ def draw_panel(frame, engine, grid, mappings, fps, footer):
             cv2.rectangle(panel, (8, y - 17), (PANEL_W - 8, y + 21), (60, 60, 60), -1)
         cv2.putText(panel, f"{(i + 1) % 10}  {m['sound']}", (14, y), FONT, 0.55, color, 1 + lit, cv2.LINE_AA)
         y += 17
-        cv2.putText(panel, "   " + ", ".join(m["gestures"]), (14, y), FONT, 0.4, (140, 140, 140), 1, cv2.LINE_AA)
+        label = ([f"vurus {m['beat']}" + (" iki kol" if m.get("both_arms") else "")] if "beat" in m else [])
+        label += list(m.get("gestures", []))
+        cv2.putText(panel, "   " + ", ".join(label), (14, y), FONT, 0.4, (140, 140, 140), 1, cv2.LINE_AA)
 
     y = h - 14 - 18 * (len(footer) - 1)
     for line in footer:

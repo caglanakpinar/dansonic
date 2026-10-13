@@ -1,27 +1,47 @@
 # Dansonic v1 - rehearsal configuration
 #
-# The drum loop plays continuously in the background. Each of the 7 sounds is
-# triggered by one or more gestures. A sound fires once when its pose starts;
-# the dancer has to leave the pose and re-enter it to fire again.
+# The drum loop plays continuously in the background. Two ways to play the 7 sounds:
+#   - beat sounds (ab, been, thin, wha-been): any "hit" (see `beats` below) plays the sound of the
+#     beat of the bar it lands on, as in the song: beat 1 ab, beat 2 been, beat 3 thin, beat 4
+#     wha-been. At most one per beat. The dancer only has to hit on the beat.
+#   - phrases (two-been-thin, ab-wha-two-been-thin, ab-ow-ab-ow-thin): their own moves play them,
+#     whenever they happen. While a phrase plays, hits do not cut it (`protect`).
+# A move fires once when it starts; the dancer has to leave the pose and re-enter it to fire again.
+# The loop's first beat is beat 1 of the bar (R restarts the loop on it; B makes the nearest beat beat 1).
+# config.gestures.yaml is the other way: one move per sound, whatever the beat.
 #
 # Built-in gestures (sides are the dancer's own left/right):
 #   right_hand_chest, left_hand_chest       hand on same-side shoulder/chest
 #   right_forearm_front, left_forearm_front forearm across the body, other arm down
 #   hands_on_hips                           both hands on hips, elbows out
+#   hands_on_chest                          both hands on the chest, not crossed (the opening move)
+#   hands_near_chest, both_forearms_up      looser versions of the opening move
 #   right_foot_up, left_foot_up             one foot lifted
 #   right_hand_up, left_hand_up, both_hands_up
 #   right_arm_out, left_arm_out, t_pose
 #   arms_crossed, hands_together, squat, lean_left, lean_right
 #   right_swipe_down, left_swipe_down, right_swipe_up, left_swipe_up  (fast hand motion)
+#   arms_flail                              arms swiping up and down in turn (flail_hits swipes in flail_window s)
 # Recorded poses: `run.py --record NAME` saves poses/NAME.json; NAME is then a gesture.
+# Poses taken from the dance video (poses/*.json, lead dancer):
+#   hands_chest       both hands on the chest
+#   squat_wide        wide squat, elbows out, hands at shoulder height
+#   arm_sweep         right arm out to the side at chest height, left forearm across the chest
+#   right_arm_diag    right arm straight up on the diagonal, left arm low
+#   right_hand_head   right hand at the head, left arm out
+#   right_hand_high   right hand high, elbow bent, left arm down
+#   right_arm_side    right arm out to the side, left arm down (bar 10 beat 1)
 
 loop:
   file: sounds/drums-loop.mp3
   bpm: 132.905          # measured from the file, steady for all 10 minutes
   beat_offset: 0.055    # seconds of the first beat
+  downbeat_index: 0     # which beat of the loop is beat 1 of the bar (0 = the first beat)
   gain: 0.8
 
-sounds_dir: sounds
+# One-shots cut from the dance video's vocal track (see sounds/video/cuts.json).
+# The previous set in sounds/ is still there: set sounds_dir back to `sounds` to use it.
+sounds_dir: sounds/video
 
 audio:
   device: null          # sounddevice output index, null = system default
@@ -53,21 +73,106 @@ gestures:
   release_frames: 3
   swipe_speed: 4.0
   swipe_cooldown: 0.3
+  flail_hits: 9         # arms_flail: swipes needed ...
+  flail_window: 1.5     # ... within this many seconds
+  flail_cooldown: 2.0
 
-# One entry per sound. Optional per entry: dancer (0, 1, 2 ... or any), quantize, gain.
-# Number keys 1-7 fire these sounds in this order for testing.
-mappings:
+# Videos played with --source: how to line them up with the loop. The dance video's music is the song
+# slowed to 0.907x, so it is played 1.1025x faster to match the loop's 132.9 bpm, and its bar 1 (video
+# second 2.19) is put on a bar of the loop. Other videos need --speed / --downbeat or play as they are.
+video_sync:
+  dansonic.mp4: {speed: 1.1025, downbeat: 2.19}
+
+# Hits: any of these moves plays the beat sound of the beat it lands on. A hit in the last
+# `lookahead` of a beat counts for the next beat and waits for it (0.5 = the nearest beat).
+# sustain: a pose that is a hit keeps the line going, one sound per beat, while it is held.
+# motion: the share of the picture that must change between frames; while anything in view moves
+#   (any dancer, even one the pose tracker does not see) the line goes on. 0 = off. A still view
+#   is about 0.00001, a dancer 0.001-0.03; raise it if a noisy camera makes sound with nobody moving.
+# min_gap (seconds): two hits closer than this count as one (both arms swiping together).
+# group (seconds): once beat 1 is hit, both arms within this time make it a double (see ab-ab below).
+# Moves with their own mapping below are not hits.
+beats:
+  lookahead: 0.4
+  sustain: true
+  motion: 0.0003
+  min_gap: 0.1
+  group: 0.25
+  hits: [right_swipe_up, left_swipe_up, right_swipe_down, left_swipe_down,
+         hands_chest, squat_wide, arm_sweep, right_arm_diag, right_hand_head,
+         right_hand_up, left_hand_up, right_arm_out, left_arm_out, t_pose, hands_on_hips]
+
+# The dance, the senkron, opens with ab ab. Until its move is seen nothing of the dance plays: no hit, no held
+# pose, no movement in view, no phrase (only the individual motions below). The opening is forgiving:
+#   motions  the move itself. It opens the gate the moment one of them is clearly reached (`margin`, in torso
+#            lengths; one frame is enough). The real opening reaches 0.12-0.15; nothing else the lead does in
+#            the video gets above 0.003 with the full pose model (0.027 for one frame with the lite model).
+#   loose    looser versions of it. They open the gate when held for `hold` seconds; a dropout shorter than
+#            `grace` seconds (the tracker lost the hands for a frame) does not start the count over.
+#   Poses taught with the K key (poses/ab_ab_*.json) are added to `motions` automatically.
+# That moment is beat 1 of the bar and plays as a double: ab, then the second ab on beat 2. Restarting the loop
+# (R) or the video starting over closes the gate again; the O key opens it without waiting. Remove the section
+# to play from the first frame.
+#   hands_chest       recorded from the lead dancer (poses/hands_chest.json)
+#   hands_on_chest    both hands on the chest, not crossed, facing the camera
+#   hands_near_chest  both hands anywhere on the upper body, may cross a little, torso may be turned
+#   both_forearms_up  both forearms upright, hands between chest and chin (the ab sketches with both arms)
+opening:
+  sound: ab-ab
+  motions: [hands_chest, hands_on_chest]
+  margin: 0.03
+  loose: [hands_near_chest, both_forearms_up]
+  hold: 0.3
+  grace: 0.15
+
+# The senkron stops with its last sound. It lasts `bars` bars from the opening: the song's sung line is 10 bars,
+# 40 beats (in the dance video the singing ends at 21.8 s and the vocal track is silent from 22 s to the end).
+# After the last beat nothing of the dance plays, whatever the dancers do, until the opening move is seen
+# again (a pose still held from before does not count: it has to be made anew); the individual motions sound
+# again meanwhile. Remove the section to let the senkron run until the loop or the video starts over.
+senkron:
+  bars: 10
+
+# Individual motions: while the senkron is not running (at the start, after R, after the video starts over, after
+# the senkron has stopped) each
+# of these motions just plays its sound, right away. They do not start the senkron; the opening ab-ab does that.
+# Once the senkron has started they are silent and the beat sounds take over. They need the opening section.
+# One entry per sound: `sound` (one of the mappings below), `gestures`, optional cooldown (seconds, default 0.3),
+# quantize, gain, dancer.
+individual:
   - sound: ab
-    gestures: [right_hand_chest, left_hand_chest]
-  - sound: been
-    gestures: [right_foot_up, left_foot_up]
-  - sound: thin
-    gestures: [hands_on_hips]
-  - sound: wha-been
-    gestures: [right_forearm_front, left_forearm_front]
-  - sound: two-been-thin
-    gestures: [t_pose]
-  - sound: ab-wha-two-been-thin
-    gestures: [both_hands_up]
-  - sound: ab-ow-ab-ow-thin
-    gestures: [arms_crossed]
+    gestures: [left_hand_up, right_hand_up]     # a hand above the head, either hand
+
+# One entry per sound. `beat` (1-4): the sound for that beat of the bar; with `both_arms: true` it is the
+# double for that beat: the plain sound plays at once and, if both arms hit within `group`, the rest of the
+# double follows on the next beat. `gestures`: its own moves.
+# Optional: dancer (0, 1, 2 ... or any), quantize, gain, span (beats a double covers, at least 2),
+# cooldown (seconds: the sound is not restarted by a gesture while it still plays),
+# protect (seconds, a little less than the phrase: hits and other sounds' moves do not cut it).
+# Number keys 1-8 fire these sounds in this order for testing.
+# Moves from the dance video are the ones the lead dancer does when the video plays that sound
+# (bar 1 starts at video 2.19 s); the poses are tuned to her, the built-in rules work for anyone.
+mappings:
+  - sound: ab                       # beat 1, one ab: hit with one arm (the video's single-ab bars 2 and 4)
+    beat: 1
+  - sound: ab-ab                    # beat 1, two abs (the song's first two beats): hit with both arms (both hands
+    beat: 1                         # to the chest, both arms up, a left and a right swipe together) as in the
+    both_arms: true                 # video's bars 1 and 8. The ab above plays at once; this sound's second ab
+    span: 2                         # follows on beat 2 instead of been. (Bar 3 is a double with one arm.)
+  - sound: been                     # beat 2
+    beat: 2
+  - sound: thin                     # beat 3
+    beat: 3
+  - sound: wha-been                 # beat 4 (the video's closing move: left arm swiped down)
+    beat: 4
+  - sound: two-been-thin            # bar 10 beats 2-3 (right hand high, left arm down)
+    gestures: [right_hand_high]
+    protect: 0.85
+  - sound: ab-wha-two-been-thin     # bar 10 beat 1 (right arm out to the side, left arm down)
+    gestures: [right_arm_side]
+    cooldown: 1.4
+    protect: 1.3
+  - sound: ab-ow-ab-ow-thin         # bar 7 (arms alternating up and down on every half beat)
+    gestures: [arms_flail, both_hands_up]
+    cooldown: 2.5                   # more than a bar: both arms up again on the next bar is ab ab, not this
+    protect: 1.3

@@ -1,0 +1,101 @@
+# Dansonic v1 - rehearsal configuration, one move per sound.
+# This is the previous way: every sound has its own moves and the beat does not matter.
+# The default config.yaml picks the syllable by the beat instead. Use this file with
+#   python run.py --config config.gestures.yaml
+#
+# The drum loop plays continuously in the background. Each of the 7 sounds is
+# triggered by one or more gestures. A sound fires once when its pose starts;
+# the dancer has to leave the pose and re-enter it to fire again.
+#
+# Built-in gestures (sides are the dancer's own left/right):
+#   right_hand_chest, left_hand_chest       hand on same-side shoulder/chest
+#   right_forearm_front, left_forearm_front forearm across the body, other arm down
+#   hands_on_hips                           both hands on hips, elbows out
+#   right_foot_up, left_foot_up             one foot lifted
+#   right_hand_up, left_hand_up, both_hands_up
+#   right_arm_out, left_arm_out, t_pose
+#   arms_crossed, hands_together, squat, lean_left, lean_right
+#   right_swipe_down, left_swipe_down, right_swipe_up, left_swipe_up  (fast hand motion)
+#   arms_flail                              arms swiping up and down in turn (7+ swipes in 1.5 s)
+# Recorded poses: `run.py --record NAME` saves poses/NAME.json; NAME is then a gesture.
+# Poses taken from the dance video (poses/*.json, lead dancer):
+#   hands_chest       both hands on the chest
+#   squat_wide        wide squat, elbows out, hands at shoulder height
+#   arm_sweep         right arm out to the side at chest height, left forearm across the chest
+#   right_arm_diag    right arm straight up on the diagonal, left arm low
+#   right_hand_head   right hand at the head, left arm out
+#   right_hand_high   right hand high, elbow bent, left arm down
+#   right_arm_side    right arm out to the side, left arm down (bar 10 beat 1)
+
+loop:
+  file: sounds/drums-loop.mp3
+  bpm: 132.905          # measured from the file, steady for all 10 minutes
+  beat_offset: 0.055    # seconds of the first beat
+  gain: 0.8
+
+# One-shots cut from the dance video's vocal track (see sounds/video/cuts.json).
+# The previous set in sounds/ is still there: set sounds_dir back to `sounds` to use it.
+sounds_dir: sounds/video
+
+audio:
+  device: null          # sounddevice output index, null = system default
+  blocksize: 256
+  master_gain: 0.9
+  quantize: 4           # grid points per beat a trigger snaps to (4 = 16th notes, 0 = instant)
+  choke: true           # a new sound cuts the one still playing
+
+camera:
+  source: 0             # camera index or a video file path
+  width: 1280
+  height: 720
+  mirror: true
+  process_width: 960    # more pixels per dancer helps when they stand far from the camera
+
+pose:
+  model: assets/models/pose_landmarker_full.task   # more accurate; lite is faster (21 vs 31 ms for two people)
+  mode: single          # single = follow one dancer, ignore everyone else | multi = all dancers trigger
+  select: center        # single: who to lock onto first: center | largest | left | right (on screen)
+  detect_people: 3      # single: how many bodies to detect so the right one can be picked
+  max_dancers: 5        # multi only
+  assignment: zones     # multi only: zones (left-to-right on screen) | track
+  min_detection: 0.4    # lower = fewer dropouts in hard light or behind glass
+  min_tracking: 0.4
+
+gestures:
+  hysteresis: 0.15
+  hold_frames: 2
+  release_frames: 3
+  swipe_speed: 4.0
+  swipe_cooldown: 0.3
+  flail_hits: 7         # arms_flail: swipes needed ...
+  flail_window: 1.5     # ... within this many seconds
+  flail_cooldown: 2.0
+
+# One entry per sound. Optional per entry: dancer (0, 1, 2 ... or any), quantize, gain,
+# cooldown (seconds: the sound is not restarted by a gesture while it still plays),
+# protect (seconds: gestures for other sounds do not cut it while it plays).
+# Number keys 1-8 fire these sounds in this order for testing.
+# Where a move comes from the dance video, the sound is the one the video plays when the dancer
+# starts it (the video's beats: 132.9 bpm after speeding it back up, bar 1 starts at video 2.19 s).
+# Poses from the video are tuned to the lead dancer; the built-in rules (T-pose, hands on hips,
+# left arm out, swipes) work for any dancer, so every sound has at least one of those or a swipe.
+mappings:
+  - sound: ab                       # downbeat syllable, one arm: bar 2 beat 1 (right arm up)
+    gestures: [right_arm_diag]
+  - sound: ab-ab                    # downbeat twice, both arms: bar 1 beats 1-2 (both hands to the chest)
+    gestures: [hands_chest]
+  - sound: been                     # beat 2: bar 4 beat 2 (right arm sweeps out). left_arm_out: v0 sketch, not in the video
+    gestures: [arm_sweep, left_arm_out]
+  - sound: thin                     # beat 3: bar 1 (wide squat), bar 2 (right hand to the head). hands_on_hips: v0 sketch
+    gestures: [squat_wide, right_hand_head, hands_on_hips]
+  - sound: wha-been                 # beat 4: left arm swiped down (bar 1 beat 4, bar 9 beat 4). t_pose: not in the video
+    gestures: [left_swipe_down, t_pose]
+  - sound: two-been-thin            # bar 10 beats 2-3 (right hand high, left arm down)
+    gestures: [right_hand_high]
+  - sound: ab-wha-two-been-thin     # bar 10 beat 1 (right arm out to the side, left arm down)
+    gestures: [right_arm_side]
+    cooldown: 1.4
+  - sound: ab-ow-ab-ow-thin         # bar 7 (arms alternating up and down on every half beat)
+    gestures: [arms_flail, both_hands_up]
+    cooldown: 1.4
+    protect: 1.4

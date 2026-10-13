@@ -1,0 +1,30 @@
+{
+ "name": "right_arm_side",
+ "joints": [
+  13,
+  14,
+  15,
+  16
+ ],
+ "threshold": 0.27,
+ "note": "right arm out to the side, left arm down (video 20.2 s, bar 10 beat 1)",
+ "source": "dance video, lead dancer, median pose over 20.12-20.28 s",
+ "vector": [
+  [
+   -0.5159387588500977,
+   0.5570690631866455
+  ],
+  [
+   0.7307382225990295,
+   -0.08154481649398804
+  ],
+  [
+   -0.6657953858375549,
+   1.0688105821609497
+  ],
+  [
+   1.1378635168075562,
+   -0.2645740211009979
+  ]
+ ]
+}
