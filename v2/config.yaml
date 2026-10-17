@@ -24,7 +24,7 @@ audio:
   choke: false          # true = a new sound cuts the one still playing (off: ab must not cut the long ab-ab clip)
 
 camera:
-  source: 0             # camera index or a video file path
+  source: iphone        # camera name (part of it) or index: iphone | facetime | 0; or a video file path
   width: 1280
   height: 720
   mirror: true

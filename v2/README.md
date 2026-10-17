@@ -171,6 +171,7 @@ macOS ilk calistirmada kamera izni ister; komutu Terminal.app'ten calistirin.
 | `run.py` | canli performans |
 | `run.py --no-camera` | kamerasiz, sesleri 1-4 tuslariyla dene |
 | `run.py --source klip.mp4` | kamera yerine video dosyasi |
+| `run.py --source iphone` | kamerayi adiyla sec (`iphone`, `facetime`); config'te varsayilan `iphone`. Telefon bulunamazsa 0 numarali kamera. Numara yerine ad, cunku telefon takilip cikinca numaralar kayar |
 | `run.py --motions` | hareketleri ve hangi sesi caldiklarini listele |
 | `run.py --record AD` | tutulan pozu AD adli hareket olarak kaydet |
 | `tools/video_report.py klip.mp4` | videoda hangi hareketlerin hangi sesi calacagini listele |

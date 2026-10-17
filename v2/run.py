@@ -157,11 +157,12 @@ def main():
     cam = tracker = None
     mirror = cfg["camera"].get("mirror", True)
     if not args.no_camera:
-        from dansonic.camera import Camera
+        from dansonic.camera import Camera, resolve_source
         from dansonic.pose_tracker import PoseTracker
         source = args.source if args.source is not None else cfg["camera"].get("source", 0)
         if isinstance(source, str) and source.isdigit():
             source = int(source)
+        source = resolve_source(source)
         cam = Camera(source, cfg["camera"].get("width", 1280), cfg["camera"].get("height", 720))
         pose_cfg = cfg["pose"]
         single_mode = pose_cfg.get("mode", "single") == "single"

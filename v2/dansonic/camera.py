@@ -6,6 +6,50 @@ from pathlib import Path
 import cv2
 
 
+def camera_names():
+    """Camera names in the order OpenCV's AVFoundation backend numbers them: sorted by uniqueID,
+    not by how macOS lists them, so a camera that comes and goes (iPhone) can shift every index."""
+    import AVFoundation as AV
+    devices = (list(AV.AVCaptureDevice.devicesWithMediaType_(AV.AVMediaTypeVideo))
+               + list(AV.AVCaptureDevice.devicesWithMediaType_(AV.AVMediaTypeMuxed)))
+    return [str(d.localizedName()) for d in sorted(devices, key=lambda d: str(d.uniqueID()))]
+
+
+def pick_camera(names, wanted):
+    """Index of the first camera whose name contains `wanted` (ignoring case), or None."""
+    wanted = wanted.lower()
+    for i, name in enumerate(names):
+        if wanted in name.lower():
+            return i
+    return None
+
+
+def resolve_source(source, wait=6.0):
+    """A camera name such as "iphone" becomes its OpenCV index; numbers and video paths pass through.
+    Continuity Camera needs a moment to show up, so wait for it; if it never does, use camera 0."""
+    if (not isinstance(source, str) or source.isdigit() or "/" in source
+            or Path(source).suffix or Path(source).exists()):
+        return source
+    try:
+        names = camera_names()
+    except ImportError:
+        raise RuntimeError("Kamerayi adla secmek icin pyobjc gerekir: pip install pyobjc-framework-AVFoundation "
+                           "(veya config'te kamera numarasi yazin).") from None
+    deadline = time.monotonic() + wait
+    index = pick_camera(names, source)
+    if index is None:
+        print(f"'{source}' kamerasi araniyor (telefon yakinda ve kilidi acik olmali)...")
+    while index is None and time.monotonic() < deadline:
+        time.sleep(0.5)
+        names = camera_names()
+        index = pick_camera(names, source)
+    if index is None:
+        print(f"'{source}' kamerasi bulunamadi, 0 numarali kamera kullaniliyor. Bulunanlar: {', '.join(names)}")
+        return 0
+    print(f"Kamera: {names[index]} (numara {index})")
+    return index
+
+
 class Camera:
     def __init__(self, source=0, width=1280, height=720, fps=30):
         self.is_file = isinstance(source, str)
