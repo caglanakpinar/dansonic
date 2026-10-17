@@ -4,3 +4,4 @@ __pycache__/
 .DS_Store
 headless_last_frame.png
 sounds/drums-loop-slow.flac
+sounds/drums-loop-125.flac
